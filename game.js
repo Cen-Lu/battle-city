@@ -12,7 +12,8 @@ function resetGame() {
         height: 40,
         color: 'green',
         speed: 2,
-        health: 3
+        health: 3,
+        direction: 'up' // Track tank direction
     };
     game.gameOver = false;
     game.score = 0;
@@ -62,7 +63,8 @@ const game = {
         height: 40,
         color: 'green',
         speed: 2,
-        health: 3
+        health: 3,
+        direction: 'up'
     },
     gameOver: false,
     score: 0,
@@ -173,19 +175,13 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
         const now = Date.now();
         if (now - game.lastShot > game.fireRate) {
-            // Determine shooting direction based on last movement
-            let direction = 'up';
-            if (game.keys.ArrowLeft) direction = 'left';
-            else if (game.keys.ArrowRight) direction = 'right';
-            else if (game.keys.ArrowDown) direction = 'down';
-            
             game.bullets.push({
                 x: game.player.x + game.player.width/2 - 2.5,
                 y: game.player.y,
                 width: 5,
                 height: 10,
                 speed: 5,
-                direction: direction
+                direction: game.player.direction
             });
             game.lastShot = now;
         }
@@ -206,11 +202,23 @@ function update() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update player position
-    if (game.keys.ArrowUp) game.player.y -= game.player.speed;
-    if (game.keys.ArrowDown) game.player.y += game.player.speed;
-    if (game.keys.ArrowLeft) game.player.x -= game.player.speed;
-    if (game.keys.ArrowRight) game.player.x += game.player.speed;
+    // Update player position and direction
+    if (game.keys.ArrowUp) {
+        game.player.y -= game.player.speed;
+        game.player.direction = 'up';
+    }
+    if (game.keys.ArrowDown) {
+        game.player.y += game.player.speed;
+        game.player.direction = 'down';
+    }
+    if (game.keys.ArrowLeft) {
+        game.player.x -= game.player.speed;
+        game.player.direction = 'left';
+    }
+    if (game.keys.ArrowRight) {
+        game.player.x += game.player.speed;
+        game.player.direction = 'right';
+    }
 
     // Draw walls
     game.walls.forEach(wall => wall.draw());
@@ -288,6 +296,41 @@ function update() {
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
         return true;
     });
+
+    // Draw player tank
+    const tank = game.player;
+    ctx.fillStyle = tank.color;
+    
+    // Draw tank body
+    ctx.fillRect(tank.x, tank.y, tank.width, tank.height);
+    
+    // Draw cannon based on direction
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    const centerX = tank.x + tank.width/2;
+    const centerY = tank.y + tank.height/2;
+    
+    switch(tank.direction) {
+        case 'up':
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX, tank.y - 10);
+            break;
+        case 'down':
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX, tank.y + tank.height + 10);
+            break;
+        case 'left':
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(tank.x - 10, centerY);
+            break;
+        case 'right':
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(tank.x + tank.width + 10, centerY);
+            break;
+    }
+    ctx.stroke();
 
     // Spawn new enemies
     const now = Date.now();
@@ -401,10 +444,6 @@ function update() {
         powerup.draw();
         return true;
     });
-
-    // Draw player
-    ctx.fillStyle = game.player.color;
-    ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
 
     // Draw health and score
     ctx.fillStyle = 'white';
