@@ -1,5 +1,43 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const startScreen = document.querySelector('.start-screen');
+const gameContainer = document.querySelector('.game-container');
+const startButton = document.getElementById('startButton');
+
+function resetGame() {
+    game.player = {
+        x: 400,
+        y: 500,
+        width: 40,
+        height: 40,
+        color: 'green',
+        speed: 2,
+        health: 3
+    };
+    game.gameOver = false;
+    game.score = 0;
+    game.bullets = [];
+    game.enemies = [];
+    game.powerups = [];
+    game.lastShot = 0;
+    game.lastEnemySpawn = 0;
+    game.lastPowerupSpawn = 0;
+}
+
+function startGame() {
+    // Remove any existing game over screen
+    const gameOverScreen = document.querySelector('.game-over-screen');
+    if (gameOverScreen) {
+        gameOverScreen.remove();
+    }
+    
+    resetGame();
+    startScreen.style.display = 'none';
+    gameContainer.style.display = 'block';
+    update();
+}
+
+startButton.addEventListener('click', startGame);
 
 // Game state
 class Wall {
@@ -23,7 +61,7 @@ const game = {
         width: 40,
         height: 40,
         color: 'green',
-        speed: 3,
+        speed: 2,
         health: 3
     },
     gameOver: false,
@@ -135,13 +173,19 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
         const now = Date.now();
         if (now - game.lastShot > game.fireRate) {
+            // Determine shooting direction based on last movement
+            let direction = 'up';
+            if (game.keys.ArrowLeft) direction = 'left';
+            else if (game.keys.ArrowRight) direction = 'right';
+            else if (game.keys.ArrowDown) direction = 'down';
+            
             game.bullets.push({
                 x: game.player.x + game.player.width/2 - 2.5,
                 y: game.player.y,
                 width: 5,
                 height: 10,
                 speed: 5,
-                direction: 'up'
+                direction: direction
             });
             game.lastShot = now;
         }
@@ -208,6 +252,15 @@ function update() {
         if (bullet.direction === 'up') {
             bullet.y -= bullet.speed;
         }
+        else if (bullet.direction === 'down') {
+            bullet.y += bullet.speed;
+        }
+        else if (bullet.direction === 'left') {
+            bullet.x -= bullet.speed;
+        }
+        else if (bullet.direction === 'right') {
+            bullet.x += bullet.speed;
+        }
         
         // Check for wall collisions
         const bulletRect = {
@@ -225,7 +278,8 @@ function update() {
         });
         
         // Remove if off screen or hit wall
-        if (bullet.y < 0 || hitWall) {
+        if (bullet.y < 0 || bullet.y > canvas.height || 
+            bullet.x < 0 || bullet.x > canvas.width || hitWall) {
             return false;
         }
         
@@ -360,12 +414,17 @@ function update() {
 
     // Game over screen
     if (game.gameOver) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'white';
-        ctx.font = '40px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Game Over', canvas.width/2, canvas.height/2);
+        // Only add game over screen if it doesn't already exist
+        if (!document.querySelector('.game-over-screen')) {
+            const gameOverHTML = `
+                <div class="game-over-screen">
+                    <h2>Game Over</h2>
+                    <p>Final Score: ${game.score}</p>
+                    <button onclick="startGame()">Play Again</button>
+                </div>
+            `;
+            gameContainer.insertAdjacentHTML('beforeend', gameOverHTML);
+        }
         return;
     }
 

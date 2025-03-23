@@ -8,9 +8,66 @@ body {
     background-color: #333;
 }
 
+.start-screen {
+    text-align: center;
+    color: white;
+    margin-top: 200px;
+}
+
+.start-screen h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.start-screen button {
+    padding: 10px 20px;
+    font-size: 24px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.start-screen button:hover {
+    background-color: #45a049;
+}
+
 .game-container {
     border: 4px solid #666;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.game-over-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.game-over-screen h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.game-over-screen button {
+    padding: 10px 20px;
+    font-size: 24px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.game-over-screen button:hover {
+    background-color: #45a049;
 }
 
 canvas {
